@@ -1,0 +1,67 @@
+---
+title: "datamanagement"
+author: "shudi"
+date: "5/7/2020"
+output: html_document
+---
+
+```{r}
+library(readxl)
+library(tidyverse)
+
+readfile = function(x){
+        x <- read_excel("DataDownload.xls", 
+    sheet = x)
+}
+health = readfile("HEALTH")
+access = readfile("ACCESS")
+stores = readfile("STORES")
+rest = readfile("RESTAURANTS")
+assist = readfile("ASSISTANCE")
+insecurity = readfile("INSECURITY")
+local =readfile("LOCAL")
+tax = readfile("PRICES_TAXES")
+ses = readfile("SOCIOECONOMIC")
+```
+
+```{r}
+# select our outcome variables and join variables from health
+diabete = health %>% select(FIPS,State,County,PCT_DIABETES_ADULTS13)
+
+#examine access and store variables
+str(access)
+str(stores)
+#will only keep 2010 and percent features for access
+access10 = access %>% select(FIPS,State,County,starts_with("PCT")) %>%
+                        select(-ends_with("15"))
+#will keep 2012 data
+#drop percent change and actual numbers features              
+stores12 = stores %>% select(SNAPSPTH12,WICSPTH12,
+                               FIPS,State,County)
+#will do the same thing for other sheets
+rest09 = rest %>% select(FFRPTH09,FSRPTH09,FIPS,State,County)
+assist12 = assist %>% select(PCT_SNAP12,SNAP_PART_RATE13,
+                             PCT_REDUCED_LUNCH09,PCT_SBP09,
+                             PCT_SFSP09,PCT_WIC09,PCT_CACFP09,
+                             FIPS,State,County)
+insecurity12 = insecurity %>% select(FOODINSEC_10_12,VLFOODSEC_10_12,
+                                     FOODINSEC_CHILD_03_11,
+                                     FIPS,State,County)
+tax10 = tax %>% select(MILK_PRICE10,MILK_SODA_PRICE10,
+                       FIPS,State,County)
+local12 = local %>% select(PCT_LOCLFARM12,PCT_LOCLSALE12,FMRKTPTH09,
+                           VEG_ACRESPTH12,FRESHVEG_ACRESPTH12,
+                           ORCHARD_ACRESPTH12,BERRY_ACRESPTH12,
+                           GHVEG_SQFTPTH12,
+                           FIPS,State,County)
+ses10 = ses %>% select(starts_with("PCT"),FIPS,State,County)
+
+list1 = list(access10,stores12,insecurity12,tax10,rest09,local12,ses10)
+# consolidate into one data frame
+new_dat = diabete
+for (i in list1){
+    new_dat <- new_dat %>% inner_join(i)    
+}
+
+write_csv(new_dat,path = "newdat.csv")
+```
