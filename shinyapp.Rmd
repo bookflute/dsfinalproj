@@ -1,0 +1,74 @@
+---
+title: "Diabete Risk Prediction"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(readr)
+dat = read_csv("https://raw.githubusercontent.com/bookflute/dsfinalproj/master/newdat.csv")
+dat = 
+
+```
+
+Selections
+=================================
+
+```{r}
+library(dplyr)
+
+sliderInput('lowaccess', 'low access to stores %', min = min( dat$PCT_LACCESS_POP10), max = max(dat$PCT_LACCESS_POP10), 
+            value = mean(dat$PCT_LACCESS_POP10),step = 50)
+
+sliderInput('foodinsecurity', 'Food inscurity %', min = min(dat$FOODINSEC_10_12), max = max(dat$FOODINSEC_10_12), 
+            value = mean(dat$FOODINSEC_10_12),step = 50)
+
+sliderInput('farmersmk', 'Farmers market per 1000 populations',
+            min = min(dat$FMRKTPTH09), max = max(dat$FMRKTPTH09),
+            value = mean(dat$FMRKTPTH09),step = 50)
+sliderInput('loclfarm', 'Local Farms per 1000 populations',
+            min = min(dat$PCT_LOCLFARM12), max = max(dat$PCT_LOCLFARM12),value = mean(dat$PCT_LOCLFARM12),
+            step = 50)
+
+
+```
+
+Column {data-width=2500}
+-----------------------------------------------------------------------
+
+### Diabete risk of selected County
+
+```{r}
+dat1 = na.omit(dat)
+dat.size = floor(nrow(dat1)/5)
+index = sample(1:nrow(dat1),size = dat.size)
+test = dat1[index,]
+train = dat1[-index,]
+
+model1 = lm(PCT_DIABETES_ADULTS13~., data = 
+                                    train)
+dat_target = reactive({
+  filter(dat,state == input$State)
+  })
+prediction = reactive({
+  predict(model1, dat_target)
+}
+)
+```
+
+
+```{r}
+renderValueBox({
+        valueBox(prediction(),
+                 icon = "medkit-outline",
+                 color = "yellow")
+}
+)
+```
+

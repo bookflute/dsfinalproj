@@ -63,5 +63,10 @@ for (i in list1){
     new_dat <- new_dat %>% inner_join(i)    
 }
 
+summary(new_dat)
+
+#there are lots of NAs 
+new_dat <- new_dat %>% select(-PCT_LOCLSALE12,-VEG_ACRESPTH12, -FRESHVEG_ACRESPTH12,-ORCHARD_ACRESPTH12,-BERRY_ACRESPTH12,
+                               -GHVEG_SQFTPTH12)
 write_csv(new_dat,path = "newdat.csv")
 ```

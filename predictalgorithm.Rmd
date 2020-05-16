@@ -1,0 +1,57 @@
+---
+title: "predictalgorithm"
+author: "shudi"
+date: "5/15/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(car)
+library(caret)
+library(glmnet)
+set.seed(10)
+dat = read_csv("newdat.csv")
+dat = na.omit(dat)
+dat1 = dat %>% select(-FIPS,-State,-County)
+summary(dat1)
+```
+
+```{r}
+#set training and testing data
+dat1 = na.omit(dat1)
+dat.size = floor(nrow(dat1)/5)
+index = sample(1:nrow(dat1),size = dat.size)
+test = dat1[index,]
+train = dat1[-index,]
+
+#construct linear regression: lasso
+x_train = model.matrix(PCT_DIABETES_ADULTS13~., train)[,-1]
+y_train = train$PCT_DIABETES_ADULTS13
+fit_lasso_cv = cv.glmnet(x_train,y_train, alpha = 1)
+#display the best lambda value
+fit_lasso_cv$lambda.min
+
+#fit the final model of training data
+model = glmnet(x_train,y_train, alpha = 1, lambda = fit_lasso_cv$lambda.min)
+coef(model)
+
+#make prediction on the test data
+x_test = model.matrix(PCT_DIABETES_ADULTS13~., test)[,-1]
+y_test = test$PCT_DIABETES_ADULTS13
+
+predictions = model %>% predict(x_test) %>% as.vector()
+predictions
+data.frame(RMSE = RMSE(predictions, test$PCT_DIABETES_ADULTS13),
+Rsquare = R2(predictions, test$PCT_DIABETES_ADULTS13)
+)
+
+#The r squared is 0.62, and Rmse is 1.53
+```
+
+
+```{r}
+rand1 = runif(25,min = 0,max = 100)
+simulation = matrix(rand1,1,25)
+```
